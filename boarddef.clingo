@@ -1,0 +1,57 @@
+axis(1..5).
+position(Row, Clmn) :-
+    axis(Row), axis(Clmn), Row >= Clmn.
+
+jump(R, FromC, R, OverC, R, ToC) :-
+    position(R, FromC), position(R, OverC), position(R, ToC),
+    |FromC - OverC| = 1, |OverC - ToC| = 1,
+    FromC != ToC.
+
+jump(FromR, C, OverR, C, ToR, C) :-
+    position(FromR, C), position(OverR, C), position(ToR, C),
+    |FromR - OverR| = 1, |OverR - ToR| = 1,
+    FromR != ToR.
+
+jump(FromR, FromC, OverR, OverC, ToR, ToC) :-
+    position(FromR, FromC), position(OverR, OverC), position(ToR, ToC),
+    |OverR - FromR| = 1, |ToR - OverR| = 1,
+    |OverC - FromC| = 1, |ToC - OverC| = 1,
+    (OverR - FromR) * (OverC - FromC) = 1,
+    (ToR - OverR) * (ToC - OverC) = 1,
+    ToR != FromR.
+
+time(0..13).
+
+emptyHole(1,1).
+
+occupied(0, Row, Clmn) :-
+    position(Row, Clmn),
+    not emptyHole(Row, Clmn).
+
+nextJump(Time, FromR, FromC, ToR, ToC) :-
+    nextJump(Time, FromR, FromC, _, _, ToR, ToC).
+
+occupied(Time, Row, Clmn) :-
+    time(Time), time(Time - 1), position(Row, Clmn),
+    occupied(Time - 1, Row, Clmn),
+    not nextJump(Time, Row, Clmn, _, _),
+    not nextJump(Time, _, _, Row, Clmn, _, _).
+
+occupied(Time, Row, Clmn) :-
+    time(Time), position(Row, Clmn),
+    nextJump(Time, _, _, Row, Clmn).
+
+nextJump(Time, FromR, FromC, OverR, OverC, ToR, ToC) :-
+    time(Time), time(Time - 1),
+    occupied(Time - 1, FromR, FromC),
+    occupied(Time - 1, OverR, OverC),
+    position(ToR, ToC), not occupied(Time - 1, ToR, ToC),
+    jump(FromR, FromC, OverR, OverC, ToR, ToC).
+
+1 { nextJump(T, FromR, FromC, OverR, OverC, ToR, ToC) :
+        position(FromR, FromC), position(OverR, OverC),
+	position(ToR, ToC)
+  } 1 :- time(T).
+
+#show occupied/3.
+#show nextJump/5.
